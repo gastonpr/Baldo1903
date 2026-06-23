@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baldo 1903</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;700;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0a0a0a;
+    --gold:      #c9a84c;
+    --gold-dim:  #4a3a18;
+    --white:     #f5f0e8;
+    --ticker-bg: #1a1400;
+  }
+
+  html, body {
+    width: 100vw; height: 100vh;
+    background: var(--bg);
+    overflow: hidden;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  /* ══════════════════════════════
+     LAYOUT
+  ══════════════════════════════ */
+  #app {
+    width: 100vw; height: 100vh;
+    display: grid;
+    grid-template-rows: 16vh 1fr;
+  }
+
+  /* ══════════════════════════════
+     HEADER
+  ══════════════════════════════ */
+  #header {
+    display: grid;
+    grid-template-columns: 22vw 1fr 22vw;
+    align-items: center;
+    padding: 0 2.5vw;
+    background: #111;
+    border-bottom: 3px solid var(--gold);
+    position: relative;
+    z-index: 10;
+  }
+
+  #logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1.2vw;
+  }
+  #logo-wrap img {
+    height: 11vh;
+    filter: invert(1);
+  }
+  #brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+  #brand-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1.8rem, 3.2vw, 3rem);
+    color: var(--gold);
+    letter-spacing: 0.06em;
+  }
+  #brand-sub {
+    font-size: clamp(0.65rem, 1vw, 0.9rem);
+    color: #888;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  #arg-flag {
+    display: inline-flex;
+    flex-direction: column;
+    width: 22px;
+    height: 15px;
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    flex-shrink: 0;
+  }
+  #arg-flag .f-stripe { flex: 1; }
+  #arg-flag .f-top    { background: #74ACDF; }
+  #arg-flag .f-mid    { background: #fff; position: relative; display: flex; align-items: center; justify-content: center; }
+  #arg-flag .f-bot    { background: #74ACDF; }
+  /* sol de mayo simplificado */
+  #arg-flag .f-mid::after {
+    content: '✦';
+    font-size: 7px;
+    color: #F6B40E;
+    line-height: 1;
+  }
+
+  /* Título de categoría — centro del header */
+  #slide-title-wrap {
+    text-align: center;
+  }
+  #slide-eyebrow {
+    font-size: clamp(0.6rem, 0.9vw, 0.85rem);
+    letter-spacing: 0.35em;
+    color: var(--gold);
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 2px;
+  }
+  #slide-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.8rem, 5.5vw, 5.2rem);
+    color: var(--white);
+    letter-spacing: 0.04em;
+    line-height: 1;
+    transition: opacity 0.25s;
+  }
+
+  /* Contador de slides — derecha */
+  #slide-counter {
+    text-align: right;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1rem, 1.8vw, 1.6rem);
+    color: var(--gold-dim);
+    letter-spacing: 0.1em;
+  }
+  #slide-counter span {
+    color: var(--gold);
+  }
+
+  /* ══════════════════════════════
+     CONTENT
+  ══════════════════════════════ */
+  #content {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  /* fondo sutil: líneas diagonales */
+  #content::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      -55deg,
+      transparent,
+      transparent 60px,
+      rgba(201,168,76,0.025) 60px,
+      rgba(201,168,76,0.025) 61px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ══════════════════════════════
+     SLIDES — base
+  ══════════════════════════════ */
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5vh 2.5vw;
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .slide.active  { pointer-events: auto; }
+
+  /* — Transición A: slide lateral (default) — */
+  .slide.t-slide               { transform: translateX(90px) scale(0.97); transition: opacity .6s ease, transform .6s cubic-bezier(.4,0,.2,1); }
+  .slide.t-slide.active        { opacity: 1; transform: translateX(0) scale(1); }
+  .slide.t-slide.exit          { opacity: 0; transform: translateX(-90px) scale(0.97); transition: opacity .45s ease, transform .45s cubic-bezier(.4,0,.2,1); }
+
+  /* — Transición B: zoom desde el centro — */
+  .slide.t-zoom                { transform: scale(0.88); transition: opacity .65s ease, transform .65s cubic-bezier(.34,1.3,.64,1); }
+  .slide.t-zoom.active         { opacity: 1; transform: scale(1); }
+  .slide.t-zoom.exit           { opacity: 0; transform: scale(1.06); transition: opacity .4s ease, transform .4s ease; }
+
+  /* — Transición C: barrido vertical — */
+  .slide.t-drop                { transform: translateY(-60px); transition: opacity .55s ease, transform .55s cubic-bezier(.4,0,.2,1); }
+  .slide.t-drop.active         { opacity: 1; transform: translateY(0); }
+  .slide.t-drop.exit           { opacity: 0; transform: translateY(60px); transition: opacity .4s ease, transform .4s ease; }
+
+  /* — Transición D: fade puro con leve rotación — */
+  .slide.t-fade                { transform: rotate(-1deg) scale(0.97); transition: opacity .7s ease, transform .7s ease; }
+  .slide.t-fade.active         { opacity: 1; transform: rotate(0deg) scale(1); }
+  .slide.t-fade.exit           { opacity: 0; transform: rotate(1deg) scale(0.97); transition: opacity .5s ease, transform .5s ease; }
+
+  /* ══════════════════════════════
+     GRID
+  ══════════════════════════════ */
+  .grid {
+    display: grid;
+    gap: 1.4vw;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-items: center;
+  }
+  .cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .cols-5 { grid-template-columns: repeat(5, 1fr); }
+
+  /* ══════════════════════════════
+     CARDS
+  ══════════════════════════════ */
+  .card {
+    background: #fff;
+    border-radius: 10px;
+    width: 100%;
+    height: 100%;
+    max-height: 68vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow:
+      0 2px 8px rgba(0,0,0,0.6),
+      0 0 0 1px rgba(201,168,76,0.12);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: cardIn 0.5s ease both;
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .card img {
+    width: 100%;
+    flex: 1;
+    object-fit: contain;
+    background: #fff;
+    padding: 6px;
+    min-height: 0;
+  }
+
+  /* label solo en slide especial */
+  .card-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(0.9rem, 1.5vw, 1.4rem);
+    letter-spacing: 0.06em;
+    color: #111;
+    background: #f0f0f0;
+    border-top: 2px solid var(--gold);
+    text-align: center;
+    padding: 5px 4px 6px;
+  }
+
+  /* ══════════════════════════════
+     TICKER — franja inferior
+  ══════════════════════════════ */
+  #ticker-wrap {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 4.5vh;
+    background: var(--gold);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    z-index: 20;
+  }
+  #ticker-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1rem, 1.8vh, 1.5rem);
+    color: #0a0a0a;
+    background: var(--gold);
+    padding: 0 1.5vw;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-right: 3px solid #0a0a0a;
+  }
+  #ticker-scroll {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+  #ticker-track {
+    display: flex;
+    gap: 4vw;
+    animation: ticker 28s linear infinite;
+    white-space: nowrap;
+    padding-left: 3vw;
+  }
+  #ticker-track span {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(0.95rem, 1.6vh, 1.35rem);
+    color: #111;
+    letter-spacing: 0.12em;
+  }
+  #ticker-track span::before {
+    content: '◆ ';
+    font-size: 0.6em;
+    opacity: 0.6;
+  }
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ajuste de content para dejar espacio al ticker */
+  #app {
+    grid-template-rows: 16vh calc(100vh - 16vh - 4.5vh);
+  }
+
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="header">
+    <div id="logo-wrap">
+      <img src="https://raw.githubusercontent.com/gastonpr/Baldo1903/main/LOGO%20BALDO%20PNG.png" alt="Baldo 1903">
+      <div id="brand-text">
+        <div id="brand-name">Baldo 1903</div>
+        <div id="brand-sub">
+          <div id="arg-flag">
+            <div class="f-stripe f-top"></div>
+            <div class="f-stripe f-mid"></div>
+            <div class="f-stripe f-bot"></div>
+          </div>
+          Almacén de Bebidas
+        </div>
+      </div>
+    </div>
+    <div id="slide-title-wrap">
+      <div id="slide-eyebrow">Categoría</div>
+      <div id="slide-title">—</div>
+    </div>
+    <div id="slide-counter"><span id="cnt-cur">1</span> / <span id="cnt-tot">1</span></div>
+  </div>
+  <div id="content"></div>
+</div>
+
+<!-- Ticker inferior -->
+<div id="ticker-wrap">
+  <div id="ticker-label">BALDO 1903</div>
+  <div id="ticker-scroll">
+    <div id="ticker-track"></div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────
+const BASE = 'https://raw.githubusercontent.com/gastonpr/Baldo1903/main/BEBIDAS%20P%20CATEGORIAS';
+const SLIDE_DURATION = 7000;
+const ITEMS_PER_SLIDE = 8;
+
+const TICKER_ITEMS = [
+  'Vinos Nacionales e Importados',
+  'Cervezas Artesanales y Premium',
+  'Gin · Vodka · Whisky · Ron',
+  'Champagne y Espumantes',
+  'Fernet · Licores · Aperitivos',
+  'Bebidas Sin Alcohol',
+  'Snacks y Combos',
+  'Vinos Nacionales e Importados',
+  'Cervezas Artesanales y Premium',
+  'Gin · Vodka · Whisky · Ron',
+  'Champagne y Espumantes',
+  'Fernet · Licores · Aperitivos',
+  'Bebidas Sin Alcohol',
+  'Snacks y Combos',
+];
+
+function imgUrl(folder, filename) {
+  return `${BASE}/${encodeURIComponent(folder)}/${encodeURIComponent(filename)}`;
+}
+
+// ─────────────────────────────────────────────
+// CATEGORÍAS
+// ─────────────────────────────────────────────
+const categories = [
+  { folder: 'APERITIVOS', label: 'Aperitivos', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.20.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.21 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.23 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.24 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.26.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.28 (1).jpeg',
+  ]},
+  { folder: 'BEBIDAS SIN ALCOHOL', label: 'Sin Alcohol', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.23 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.24 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.25.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.26 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.32 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.32 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.34 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.35 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.37 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.37 (3).jpeg',
+  ]},
+  { folder: 'CERVEZA MUR', label: 'Cerveza Mur', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.36 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.36 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.36 (4).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.37.jpeg',
+  ]},
+  { folder: 'CERVEZAS EN BOTELLA', label: 'Cervezas en Botella', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.15 (4).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.16.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.25 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.25 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.25 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.32.jpeg',
+  ]},
+  { folder: 'CERVEZAS EN LATA', label: 'Cervezas en Lata', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.19 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.20 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.20 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.23.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.29 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.31 (2).jpeg',
+  ]},
+  { folder: 'CHAMPAGNE', label: 'Champagne', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.21 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.23 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.24 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.24.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.36 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.37 (1).jpeg',
+  ]},
+  { folder: 'FERNET', label: 'Fernet', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.27 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.27 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.28.jpeg',
+  ]},
+  { folder: 'GIN', label: 'Gin', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.22.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.28 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.28 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.32 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.33 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.33 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.33 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.33.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.34 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.34.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.35 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.35 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.35.jpeg',
+  ]},
+  { folder: 'LICORES', label: 'Licores', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.15 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.16 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.16 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.16 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.22 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.29 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.30 (2).jpeg',
+  ]},
+  { folder: 'SNACKS', label: 'Snacks', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.38 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.38 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.38 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.39 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.39 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.39.jpeg',
+  ]},
+  { folder: 'VERMOUTH', label: 'Vermouth', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.30 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.31 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.31.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.32 (3).jpeg',
+  ]},
+  { folder: 'VINOS', label: 'Vinos', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.15.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.15 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.15 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.17.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.17 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.18.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.18 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.18 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.19.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.20 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.21.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.22 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.26 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.26 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.27.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.27 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.30.jpeg',
+  ]},
+  { folder: 'VODKA', label: 'Vodka', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.29 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.30 (1).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.31 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.34 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.36.jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.38.jpeg',
+  ]},
+  { folder: 'WHISKY', label: 'Whisky', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.19 (2).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.19 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.21 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.22 (3).jpeg',
+    'WhatsApp Image 2026-06-23 at 13.20.30 (2).jpeg',
+  ]},
+  // Slide especial
+  { folder: null, label: null, special: true, items: [
+    { label: 'Ron',         folder: 'RON',        file: 'WhatsApp Image 2026-06-23 at 13.20.29.jpeg' },
+    { label: 'Hielo',       folder: 'HIELO',      file: 'WhatsApp Image 2026-06-23 at 13.20.29 (2).jpeg' },
+    { label: 'Combo',       folder: 'COMBO',      file: 'WhatsApp Image 2026-06-23 at 13.20.39 (3).jpeg' },
+    { label: 'Vino en Lata',folder: 'VINO EN LATA', file: 'WhatsApp Image 2026-06-23 at 13.20.31 (3).jpeg' },
+  ]},
+];
+
+// ─────────────────────────────────────────────
+// BUILD SLIDES
+// ─────────────────────────────────────────────
+function buildSlides() {
+  const slides = [];
+  categories.forEach(cat => {
+    if (cat.special) { slides.push(cat); return; }
+    const chunks = [];
+    for (let i = 0; i < cat.files.length; i += ITEMS_PER_SLIDE)
+      chunks.push(cat.files.slice(i, i + ITEMS_PER_SLIDE));
+    chunks.forEach((chunk, idx) => slides.push({
+      label: cat.label,
+      folder: cat.folder,
+      files: chunk,
+      part: chunks.length > 1 ? idx + 1 : null,
+      total: chunks.length > 1 ? chunks.length : null,
+    }));
+  });
+  return slides;
+}
+
+function colsFor(n) {
+  if (n <= 2) return 2;
+  if (n <= 3) return 3;
+  if (n <= 4) return 4;
+  if (n <= 6) return 3;
+  return 4;
+}
+
+const TRANSITIONS = ['t-slide', 't-zoom', 't-drop', 't-fade'];
+
+function renderSlide(slide, idx) {
+  const div = document.createElement('div');
+  const t = TRANSITIONS[idx % TRANSITIONS.length];
+  div.className = `slide ${t}`;
+
+  const grid = document.createElement('div');
+
+  if (slide.special) {
+    grid.className = 'grid cols-4';
+    slide.items.forEach((item, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.animationDelay = `${i * 0.07}s`;
+      card.innerHTML = `
+        <img src="${imgUrl(item.folder, item.file)}" alt="${item.label}" loading="lazy">
+        <div class="card-label">${item.label.toUpperCase()}</div>
+      `;
+      grid.appendChild(card);
+    });
+  } else {
+    const cols = colsFor(slide.files.length);
+    grid.className = `grid cols-${cols}`;
+    slide.files.forEach((f, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.animationDelay = `${i * 0.05}s`;
+      card.innerHTML = `<img src="${imgUrl(slide.folder, f)}" alt="${slide.label}" loading="lazy">`;
+      grid.appendChild(card);
+    });
+  }
+
+  div.appendChild(grid);
+  return div;
+}
+
+// ─────────────────────────────────────────────
+// TICKER
+// ─────────────────────────────────────────────
+function buildTicker() {
+  const track = document.getElementById('ticker-track');
+  // duplicar para loop continuo
+  [...TICKER_ITEMS, ...TICKER_ITEMS].forEach(text => {
+    const span = document.createElement('span');
+    span.textContent = text;
+    track.appendChild(span);
+  });
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+const slides = buildSlides();
+const content = document.getElementById('content');
+const titleEl = document.getElementById('slide-title');
+const eyebrowEl = document.getElementById('slide-eyebrow');
+const cntCur = document.getElementById('cnt-cur');
+const cntTot = document.getElementById('cnt-tot');
+
+cntTot.textContent = slides.length;
+
+const slideEls = slides.map((s, i) => {
+  const el = renderSlide(s, i);
+  content.appendChild(el);
+  return el;
+});
+
+buildTicker();
+
+let current = 0;
+
+function goTo(idx) {
+  slideEls[current].classList.remove('active');
+  slideEls[current].classList.add('exit');
+  const prev = current;
+  setTimeout(() => slideEls[prev].classList.remove('exit'), 600);
+
+  current = idx;
+  const slide = slides[current];
+  slideEls[current].classList.add('active');
+
+  // re-trigger card animations
+  slideEls[current].querySelectorAll('.card').forEach(c => {
+    c.style.animation = 'none';
+    c.offsetHeight;
+    c.style.animation = '';
+  });
+
+  if (slide.special) {
+    titleEl.textContent = 'También Tenemos';
+    eyebrowEl.textContent = 'Otros Productos';
+  } else {
+    titleEl.textContent = slide.part ? `${slide.label} · ${slide.part}/${slide.total}` : slide.label;
+    eyebrowEl.textContent = 'Categoría';
+  }
+
+  cntCur.textContent = current + 1;
+}
+
+function next() { goTo((current + 1) % slides.length); }
+
+goTo(0);
+setInterval(next, SLIDE_DURATION);
+</script>
+</body>
+</html>
