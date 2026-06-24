@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baldo 1903</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;700;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0a0a0a;
+    --gold:     #c9a84c;
+    --gold-dim: #4a3a18;
+    --white:    #f5f0e8;
+  }
+
+  html, body {
+    width: 100vw; height: 100vh;
+    background: var(--bg);
+    overflow: hidden;
+    font-family: 'Barlow Condensed', sans-serif;
+  }
+
+  /* ══════════════════════════════
+     SPLASH SCREEN
+  ══════════════════════════════ */
+  #splash {
+    position: fixed;
+    inset: 0;
+    background: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    gap: 2vh;
+    transition: opacity 0.8s ease;
+  }
+  #splash.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #splash img {
+    height: 28vh;
+    filter: invert(1);
+    animation: splashPulse 2s ease infinite;
+  }
+  @keyframes splashPulse {
+    0%, 100% { transform: scale(1);    opacity: 1; }
+    50%       { transform: scale(1.04); opacity: 0.85; }
+  }
+  #splash-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 7rem);
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    line-height: 1;
+  }
+  #splash-sub {
+    font-size: clamp(0.8rem, 1.5vw, 1.2rem);
+    color: #666;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #splash-flag {
+    display: inline-flex;
+    flex-direction: column;
+    width: 32px;
+    height: 22px;
+    border-radius: 3px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    flex-shrink: 0;
+  }
+  #splash-flag .f-stripe { flex: 1; }
+  #splash-flag .f-top { background: #74ACDF; }
+  #splash-flag .f-mid {
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #splash-flag .f-bot { background: #74ACDF; }
+  #splash-flag .f-mid::after {
+    content: '✦';
+    font-size: 9px;
+    color: #F6B40E;
+    line-height: 1;
+  }
+  #splash-phrase {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1.2rem, 2.2vw, 2rem);
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    text-align: center;
+    opacity: 0;
+    animation: phraseIn 0.8s ease 0.4s forwards;
+    max-width: 60vw;
+  }
+  @keyframes phraseIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+    width: 20vw;
+    height: 2px;
+    background: var(--gold-dim);
+    margin-top: 1vh;
+    position: relative;
+    overflow: hidden;
+  }
+  #splash-bar::after {
+    content: '';
+    position: absolute;
+    left: -40%;
+    top: 0;
+    width: 40%;
+    height: 100%;
+    background: var(--gold);
+    animation: splashLoad 2.5s ease forwards;
+  }
+  @keyframes splashLoad {
+    from { left: -40%; }
+    to   { left: 100%; }
+  }
+
+  /* ══════════════════════════════
+     LAYOUT
+  ══════════════════════════════ */
+  #app {
+    width: 100vw; height: 100vh;
+    display: grid;
+    grid-template-rows: 16vh 4.5vh 1fr;
+  }
+
+  /* ══════════════════════════════
+     HEADER
+  ══════════════════════════════ */
+  #header {
+    display: grid;
+    grid-template-columns: 22vw 1fr 22vw;
+    align-items: center;
+    padding: 0 2.5vw;
+    background: #111;
+    position: relative;
+    z-index: 10;
+  }
+
+  #logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 1.2vw;
+  }
+  #logo-wrap img {
+    height: 11vh;
+    filter: invert(1);
+  }
+  #brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+  #brand-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1.8rem, 3.2vw, 3rem);
+    color: var(--gold);
+    letter-spacing: 0.06em;
+  }
+  #brand-sub {
+    font-size: clamp(0.65rem, 1vw, 0.9rem);
+    color: #888;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Banderita argentina */
+  #arg-flag {
+    display: inline-flex;
+    flex-direction: column;
+    width: 22px;
+    height: 15px;
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    flex-shrink: 0;
+  }
+  #arg-flag .f-stripe { flex: 1; }
+  #arg-flag .f-top { background: #74ACDF; }
+  #arg-flag .f-mid {
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #arg-flag .f-bot { background: #74ACDF; }
+  #arg-flag .f-mid::after {
+    content: '✦';
+    font-size: 7px;
+    color: #F6B40E;
+    line-height: 1;
+  }
+
+  /* Título categoría — centro */
+  #slide-title-wrap { text-align: center; }
+  #slide-eyebrow {
+    font-size: clamp(0.6rem, 0.9vw, 0.85rem);
+    letter-spacing: 0.35em;
+    color: var(--gold);
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 2px;
+  }
+  #slide-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.8rem, 5.5vw, 5.2rem);
+    color: var(--white);
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+
+  /* Reloj — derecha */
+  #clock-wrap {
+    text-align: right;
+  }
+  #clock-time {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 3.5vw, 3.2rem);
+    color: var(--gold);
+    letter-spacing: 0.06em;
+    line-height: 1;
+  }
+  #clock-date {
+    font-size: clamp(0.6rem, 0.9vw, 0.85rem);
+    color: #666;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* ══════════════════════════════
+     TICKER
+  ══════════════════════════════ */
+  #ticker-wrap {
+    width: 100%;
+    height: 4.5vh;
+    background: var(--gold);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    border-top: 2px solid #0a0a0a;
+    border-bottom: 2px solid #0a0a0a;
+    z-index: 10;
+  }
+  #ticker-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1rem, 1.8vh, 1.5rem);
+    color: #0a0a0a;
+    background: var(--gold);
+    padding: 0 1.5vw;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-right: 3px solid #0a0a0a;
+    position: relative;
+    z-index: 2;
+  }
+  #ticker-scroll { flex: 1; overflow: hidden; }
+  #ticker-track {
+    display: flex;
+    gap: 4vw;
+    animation: ticker 30s linear infinite;
+    white-space: nowrap;
+    padding-left: 3vw;
+  }
+  #ticker-track span {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(0.95rem, 1.6vh, 1.35rem);
+    color: #111;
+    letter-spacing: 0.12em;
+  }
+  #ticker-track span::before {
+    content: '◆';
+    font-size: 0.55em;
+    margin-right: 0.6em;
+    display: inline-block;
+    animation: diamondGlow 2.5s ease-in-out infinite;
+    animation-delay: calc(var(--i, 0) * 0.3s);
+  }
+  @keyframes diamondGlow {
+    0%, 100% { opacity: 0.3; transform: scale(1);    filter: brightness(1); }
+    50%       { opacity: 1;   transform: scale(1.35); filter: brightness(2) drop-shadow(0 0 3px #000); }
+  }
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ══════════════════════════════
+     CONTENT
+  ══════════════════════════════ */
+  #content {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg);
+  }
+  /* Parallax layer — se mueve lento en el fondo */
+  #parallax-bg {
+    position: absolute;
+    inset: -8%;
+    width: 116%;
+    height: 116%;
+    background-image: repeating-linear-gradient(
+      -55deg,
+      transparent, transparent 60px,
+      rgba(201,168,76,0.025) 60px,
+      rgba(201,168,76,0.025) 61px
+    );
+    transition: transform 1.2s cubic-bezier(.4,0,.2,1);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ══════════════════════════════
+     SLIDES
+  ══════════════════════════════ */
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5vh 2.5vw;
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .slide.active { pointer-events: auto; }
+
+  .slide.t-slide        { transform: translateX(90px) scale(0.97); transition: opacity .6s ease, transform .6s cubic-bezier(.4,0,.2,1); }
+  .slide.t-slide.active  { opacity: 1; transform: translateX(0) scale(1); }
+  .slide.t-slide.exit   { opacity: 0; transform: translateX(-90px) scale(0.97); transition: opacity .45s ease, transform .45s cubic-bezier(.4,0,.2,1); }
+
+  .slide.t-zoom         { transform: scale(0.88); transition: opacity .65s ease, transform .65s cubic-bezier(.34,1.3,.64,1); }
+  .slide.t-zoom.active   { opacity: 1; transform: scale(1); }
+  .slide.t-zoom.exit    { opacity: 0; transform: scale(1.06); transition: opacity .4s ease, transform .4s ease; }
+
+  .slide.t-drop         { transform: translateY(-60px); transition: opacity .55s ease, transform .55s cubic-bezier(.4,0,.2,1); }
+  .slide.t-drop.active   { opacity: 1; transform: translateY(0); }
+  .slide.t-drop.exit    { opacity: 0; transform: translateY(60px); transition: opacity .4s ease, transform .4s ease; }
+
+  .slide.t-fade         { transform: rotate(-1deg) scale(0.97); transition: opacity .7s ease, transform .7s ease; }
+  .slide.t-fade.active   { opacity: 1; transform: rotate(0deg) scale(1); }
+  .slide.t-fade.exit    { opacity: 0; transform: rotate(1deg) scale(0.97); transition: opacity .5s ease, transform .5s ease; }
+
+  /* Pausa al hover */
+  #content:hover .slide.active { animation-play-state: paused; }
+
+  /* ══════════════════════════════
+     GRID
+  ══════════════════════════════ */
+  .grid {
+    display: grid;
+    gap: 1.5vh 2vw;
+    width: 100%;
+    height: 100%;
+    align-items: stretch;
+    justify-items: center;
+    justify-content: center;
+    align-content: stretch;
+  }
+  .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(1, 1fr); }
+  .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(1, 1fr); }
+  .cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(1, 1fr); }
+  .cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(1, 1fr); }
+  /* 2 filas */
+  .rows-2.cols-2 { grid-template-rows: repeat(2, 1fr); }
+  .rows-2.cols-3 { grid-template-rows: repeat(2, 1fr); }
+  .rows-2.cols-4 { grid-template-rows: repeat(2, 1fr); }
+  .rows-2.cols-5 { grid-template-rows: repeat(2, 1fr); }
+
+  .cols-3 .card:last-child:nth-child(3n+1) { grid-column: 2; }
+  .cols-4 .card:last-child:nth-child(4n+1) { grid-column: 2 / span 2; }
+  .cols-4 .card:last-child:nth-child(4n+2) { grid-column: 2; }
+  .cols-4 .card:last-child:nth-child(4n+3) { grid-column: 2; }
+
+  /* ══════════════════════════════
+     CARDS
+  ══════════════════════════════ */
+  .card {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: cardIn 0.5s ease both;
+    cursor: default;
+    overflow: hidden;
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(18px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .card img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.7));
+  }
+
+  /* Placeholder imagen rota */
+  .card .img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1vh;
+    border: 2px dashed var(--gold-dim);
+    border-radius: 12px;
+    color: var(--gold-dim);
+  }
+  .card .img-placeholder svg {
+    width: 3vw;
+    opacity: 0.4;
+  }
+
+  .card-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(0.9rem, 1.5vw, 1.4rem);
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    text-align: center;
+    margin-top: 0.8vh;
+  }
+
+  /* ══════════════════════════════
+     PAUSA INDICATOR
+  ══════════════════════════════ */
+  #pause-indicator {
+    position: fixed;
+    top: 17vh;
+    right: 2vw;
+    background: rgba(0,0,0,0.7);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(0.8rem, 1.2vw, 1rem);
+    letter-spacing: 0.15em;
+    padding: 4px 12px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 50;
+  }
+  #content:hover ~ #pause-indicator,
+  #content:hover + * #pause-indicator { opacity: 1; }
+
+  /* modo edicion oculto — por imagen */
+  #edit-panel {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 200;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #edit-panel.visible { display: flex; }
+
+  #edit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2vh 3vw 1.5vh;
+    border-bottom: 2px solid var(--gold-dim);
+    flex-shrink: 0;
+  }
+  #edit-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    color: var(--gold);
+    letter-spacing: 0.1em;
+  }
+  #edit-header p {
+    color: #555;
+    font-size: clamp(0.65rem, 1vw, 0.85rem);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  #edit-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .edit-action-btn {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+    padding: 6px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid #444;
+    background: transparent;
+    color: #888;
+    transition: all 0.2s;
+  }
+  .edit-action-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .edit-action-btn.primary {
+    border-color: var(--gold);
+    color: #111;
+    background: var(--gold);
+  }
+  .edit-action-btn.primary:hover { background: #e0b84e; }
+
+  /* tabs de categorías */
+  #edit-tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 3vw;
+    border-bottom: 1px solid #222;
+    flex-shrink: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  #edit-tabs::-webkit-scrollbar { display: none; }
+  .edit-tab {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(0.85rem, 1.2vw, 1.1rem);
+    letter-spacing: 0.1em;
+    padding: 1vh 1.5vw;
+    cursor: pointer;
+    color: #555;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+    position: relative;
+    top: 1px;
+  }
+  .edit-tab:hover { color: #999; }
+  .edit-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .edit-tab .tab-count {
+    font-size: 0.7em;
+    color: #444;
+    margin-left: 4px;
+  }
+  .edit-tab.has-off .tab-count { color: #c9a84c88; }
+
+  /* grid de miniaturas */
+  #edit-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2vh 3vw;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gold-dim) transparent;
+  }
+  #edit-body::-webkit-scrollbar { width: 4px; }
+  #edit-body::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+  .edit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 16px;
+  }
+
+  .edit-thumb {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    position: relative;
+  }
+  .edit-thumb-img {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #2a2a2a;
+    background: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s, opacity 0.2s;
+    position: relative;
+  }
+  .edit-thumb-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 6px;
+  }
+  .edit-thumb.active .edit-thumb-img {
+    border-color: var(--gold);
+  }
+  .edit-thumb.off .edit-thumb-img {
+    opacity: 0.25;
+    border-color: #222;
+  }
+  /* check activo */
+  .edit-thumb.active .edit-thumb-img::after {
+    content: '✓';
+    position: absolute;
+    top: 4px; right: 6px;
+    font-size: 0.85rem;
+    color: var(--gold);
+    font-weight: bold;
+  }
+  /* X desactivado */
+  .edit-thumb.off .edit-thumb-img::after {
+    content: '✕';
+    position: absolute;
+    top: 4px; right: 6px;
+    font-size: 0.85rem;
+    color: #555;
+  }
+  .edit-thumb-label {
+    font-size: 0.65rem;
+    color: #444;
+    text-align: center;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .edit-thumb.active .edit-thumb-label { color: #888; }
+  .edit-thumb:hover .edit-thumb-img { border-color: #666; }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <img src="https://raw.githubusercontent.com/gastonpr/Baldo1903/main/LOGO%20BALDO%20PNG.png" alt="Baldo 1903">
+  <div id="splash-title">Baldo 1903</div>
+  <div id="splash-sub">
+    <div id="splash-flag">
+      <div class="f-stripe f-top"></div>
+      <div class="f-stripe f-mid"></div>
+      <div class="f-stripe f-bot"></div>
+    </div>
+    Almacén de Bebidas
+  </div>
+  <div id="splash-phrase"></div>
+  <div id="splash-bar"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div id="header">
+    <div id="logo-wrap">
+      <img src="https://raw.githubusercontent.com/gastonpr/Baldo1903/main/LOGO%20BALDO%20PNG.png" alt="Baldo 1903">
+      <div id="brand-text">
+        <div id="brand-name">Baldo 1903</div>
+        <div id="brand-sub">
+          <div id="arg-flag">
+            <div class="f-stripe f-top"></div>
+            <div class="f-stripe f-mid"></div>
+            <div class="f-stripe f-bot"></div>
+          </div>
+          Almacén de Bebidas
+        </div>
+      </div>
+    </div>
+    <div id="slide-title-wrap">
+      <div id="slide-eyebrow">Categoría</div>
+      <div id="slide-title">—</div>
+    </div>
+    <div id="clock-wrap">
+      <div id="clock-time">00:00</div>
+      <div id="clock-date">—</div>
+    </div>
+  </div>
+  <div id="ticker-wrap">
+    <div id="ticker-label">BALDO 1903</div>
+    <div id="ticker-scroll">
+      <div id="ticker-track"></div>
+    </div>
+  </div>
+  <div id="content">
+    <div id="parallax-bg"></div>
+  </div>
+</div>
+
+<!-- Indicador pausa -->
+<div id="pause-indicator">⏸ PAUSADO</div>
+
+<!-- Panel modo edición (tecla E) -->
+<div id="edit-panel">
+  <div id="edit-header">
+    <div>
+      <h2>⚙ Modo Edición</h2>
+      <p>Click en una imagen para activar / desactivar · Los cambios se guardan automáticamente</p>
+    </div>
+    <div id="edit-actions">
+      <button class="edit-action-btn" id="edit-all-on">Activar todo</button>
+      <button class="edit-action-btn" id="edit-all-off">Desactivar todo</button>
+      <button class="edit-action-btn primary" id="edit-close">Cerrar · ESC</button>
+    </div>
+  </div>
+  <div id="edit-tabs"></div>
+  <div id="edit-body">
+    <div class="edit-grid" id="edit-grid"></div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────
+const BASE            = 'https://raw.githubusercontent.com/gastonpr/Baldo1903/main/BEBIDAS%20P%20CATEGORIAS';
+const SLIDE_DURATION  = 7000;
+const ITEMS_PER_SLIDE = 8;
+const SPLASH_DURATION = 3000;
+const TRANSITIONS     = ['t-slide', 't-zoom', 't-drop', 't-fade'];
+
+const TICKER_ITEMS = [
+  'Vinos Nacionales e Importados',
+  'Cervezas Artesanales y Premium',
+  'Gin · Vodka · Whisky · Ron',
+  'Champagne y Espumantes',
+  'Fernet · Licores · Aperitivos',
+  'Bebidas Sin Alcohol',
+  'Snacks y Combos',
+  'Vinos Nacionales e Importados',
+  'Cervezas Artesanales y Premium',
+  'Gin · Vodka · Whisky · Ron',
+  'Champagne y Espumantes',
+  'Fernet · Licores · Aperitivos',
+  'Bebidas Sin Alcohol',
+  'Snacks y Combos',
+];
+
+const DIAS   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES  = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+function imgUrl(folder, filename) {
+  return `${BASE}/${encodeURIComponent(folder)}/${encodeURIComponent(filename)}`;
+}
+
+// ─────────────────────────────────────────────
+// CATEGORÍAS
+// ─────────────────────────────────────────────
+const categories = [
+  { folder: 'APERITIVOS', label: 'Aperitivos', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.20.png',
+    'WhatsApp Image 2026-06-23 at 13.20.21 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.23 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.24 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.26.png',
+    'WhatsApp Image 2026-06-23 at 13.20.28 (1).png',
+  ]},
+  { folder: 'BEBIDAS SIN ALCOHOL', label: 'Sin Alcohol', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.23 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.24 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.25.png',
+    'WhatsApp Image 2026-06-23 at 13.20.26 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.32 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.32 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.34 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.37 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.37 (3).png',
+  ]},
+  { folder: 'CERVEZA MUR', label: 'Cerveza Mur', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.36 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.36 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.36 (4).png',
+    'WhatsApp Image 2026-06-23 at 13.20.37.png',
+  ]},
+  { folder: 'CERVEZAS EN BOTELLA', label: 'Cervezas en Botella', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.15 (4).png',
+    'WhatsApp Image 2026-06-23 at 13.20.16.png',
+    'WhatsApp Image 2026-06-23 at 13.20.25 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.25 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.25 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.32.png',
+  ]},
+  { folder: 'CERVEZAS EN LATA', label: 'Cervezas en Lata', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.19 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.20 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.20 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.23.png',
+    'WhatsApp Image 2026-06-23 at 13.20.29 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.31 (2).png',
+  ]},
+  { folder: 'CHAMPAGNE', label: 'Champagne', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.21 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.23 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.24 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.24.png',
+    'WhatsApp Image 2026-06-23 at 13.20.36 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.37 (1).png',
+  ]},
+  { folder: 'FERNET', label: 'Fernet', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.27 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.27 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.28.png',
+  ]},
+  { folder: 'GIN', label: 'Gin', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.22.png',
+    'WhatsApp Image 2026-06-23 at 13.20.28 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.28 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.32 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.33 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.33 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.33 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.33.png',
+    'WhatsApp Image 2026-06-23 at 13.20.34 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.34.png',
+    'WhatsApp Image 2026-06-23 at 13.20.35 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.35 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.35.png',
+  ]},
+  { folder: 'LICORES', label: 'Licores', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.15 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.16 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.16 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.16 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.22 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.29 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.30 (2).png',
+  ]},
+  { folder: 'SNACKS', label: 'Snacks', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.38 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.38 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.38.png',
+    'WhatsApp Image 2026-06-23 at 13.20.39 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.39 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.39.png',
+  ]},
+  { folder: 'VINOS', label: 'Vinos', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.14.png',
+    'WhatsApp Image 2026-06-23 at 13.20.14 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.15.png',
+    'WhatsApp Image 2026-06-23 at 13.20.15 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.15 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.18 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.18 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.19 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.19 (4).png',
+    'WhatsApp Image 2026-06-23 at 13.20.21.png',
+    'WhatsApp Image 2026-06-23 at 13.20.22 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.22 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.25 (4).png',
+    'WhatsApp Image 2026-06-23 at 13.20.26 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.27.png',
+    'WhatsApp Image 2026-06-23 at 13.20.27 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.36.png',
+  ]},
+  { folder: 'VODKA', label: 'Vodka', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.17.png',
+    'WhatsApp Image 2026-06-23 at 13.20.17 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.17 (2).png',
+    'WhatsApp Image 2026-06-23 at 13.20.18.png',
+    'WhatsApp Image 2026-06-23 at 13.20.18 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.19 (2).png',
+  ]},
+  { folder: 'WHISKY', label: 'Whisky', files: [
+    'WhatsApp Image 2026-06-23 at 13.20.30.png',
+    'WhatsApp Image 2026-06-23 at 13.20.30 (1).png',
+    'WhatsApp Image 2026-06-23 at 13.20.30 (3).png',
+    'WhatsApp Image 2026-06-23 at 13.20.31.png',
+    'WhatsApp Image 2026-06-23 at 13.20.31 (1).png',
+  ]},
+  { special: true, items: [
+    { label: 'Ron',          folder: 'RON',          file: 'WhatsApp Image 2026-06-23 at 13.20.29.png' },
+    { label: 'Hielo',        folder: 'HIELO',        file: 'WhatsApp Image 2026-06-23 at 13.20.29 (2).png' },
+    { label: 'Combo',        folder: 'COMBO',        file: 'WhatsApp Image 2026-06-23 at 13.20.39 (3).png' },
+    { label: 'Vino en Lata', folder: 'VINO EN LATA', file: 'WhatsApp Image 2026-06-23 at 13.20.31 (3).png' },
+  ]},
+];
+
+// ─────────────────────────────────────────────
+// ESTADO — imágenes desactivadas (localStorage)
+// clave: "catIdx_fileIdx" → false si está off
+// ─────────────────────────────────────────────
+function loadActiveImgs() {
+  try {
+    const saved = localStorage.getItem('baldo_active_imgs');
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+}
+function saveActiveImgs() {
+  try { localStorage.setItem('baldo_active_imgs', JSON.stringify(activeImgs)); } catch {}
+}
+
+// key: "catIdx_fileIdx"
+let activeImgs = loadActiveImgs();
+
+function imgKey(catIdx, fileIdx) { return `${catIdx}_${fileIdx}`; }
+function isImgActive(catIdx, fileIdx) {
+  const k = imgKey(catIdx, fileIdx);
+  return activeImgs[k] !== false; // default: activo
+}
+
+// ─────────────────────────────────────────────
+// DISTRIBUCIÓN PAREJA DE SLIDES
+// Evita que la última slide tenga muy pocas imágenes
+// Ej: 17 items → [6, 6, 5] en vez de [8, 8, 1]
+// ─────────────────────────────────────────────
+function distributeEvenly(files, maxPerSlide) {
+  const total = files.length;
+  if (total <= maxPerSlide) return [files];
+  const numSlides = Math.ceil(total / maxPerSlide);
+  const baseSize  = Math.floor(total / numSlides);
+  const extras    = total % numSlides;
+  const chunks = [];
+  let idx = 0;
+  for (let s = 0; s < numSlides; s++) {
+    const size = baseSize + (s < extras ? 1 : 0);
+    chunks.push(files.slice(idx, idx + size));
+    idx += size;
+  }
+  return chunks;
+}
+
+// ─────────────────────────────────────────────
+// BUILD SLIDES — orden aleatorio + filtrado
+// ─────────────────────────────────────────────
+function buildSlides() {
+  const normal  = categories.map((c, i) => ({ cat: c, origIdx: i })).filter(x => !x.cat.special);
+  const special = categories.map((c, i) => ({ cat: c, origIdx: i })).filter(x => x.cat.special);
+
+  for (let i = normal.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [normal[i], normal[j]] = [normal[j], normal[i]];
+  }
+
+  const ordered = [...normal, ...special];
+  const slides  = [];
+
+  ordered.forEach(({ cat, origIdx }) => {
+    if (cat.special) {
+      const activeItems = cat.items.filter((item, fi) => isImgActive(origIdx, fi));
+      if (activeItems.length > 0)
+        slides.push({ ...cat, items: activeItems, origIdx });
+      return;
+    }
+
+    const activeFiles = cat.files.filter((_, fi) => isImgActive(origIdx, fi));
+    if (activeFiles.length === 0) return;
+
+    const chunks = distributeEvenly(activeFiles, ITEMS_PER_SLIDE);
+    chunks.forEach((chunk, idx) => slides.push({
+      label:  cat.label,
+      folder: cat.folder,
+      files:  chunk,
+      part:   chunks.length > 1 ? idx + 1 : null,
+      total:  chunks.length > 1 ? chunks.length : null,
+      origIdx,
+    }));
+  });
+
+  return slides;
+}
+
+function colsFor(n) {
+  if (n <= 2) return 2;
+  if (n <= 3) return 3;
+  if (n <= 4) return 4;
+  if (n <= 6) return 3;
+  return 4;
+}
+
+function rowsFor(n) {
+  const cols = colsFor(n);
+  return Math.ceil(n / cols);
+}
+
+// ─────────────────────────────────────────────
+// RENDER SLIDE
+// ─────────────────────────────────────────────
+function makePlaceholder() {
+  return `<div class="img-placeholder">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9l4-4 4 4 4-6 4 6"/>
+    </svg>
+  </div>`;
+}
+
+function makeImg(src, alt) {
+  const img = document.createElement('img');
+  img.alt     = alt;
+  img.loading = 'lazy';
+  img.src     = src;
+  img.onerror = function() {
+    const ph = document.createElement('div');
+    ph.className = 'img-placeholder';
+    ph.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:3vw;opacity:0.4">
+      <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9l4-4 4 4 4-6 4 6"/>
+    </svg>`;
+    this.parentNode.replaceChild(ph, this);
+  };
+  return img;
+}
+
+function renderSlide(slide, idx) {
+  const div  = document.createElement('div');
+  div.className = `slide ${TRANSITIONS[idx % TRANSITIONS.length]}`;
+  const grid = document.createElement('div');
+
+  if (slide.special) {
+    grid.className = 'grid cols-4';
+    slide.items.forEach((item, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.animationDelay = `${i * 0.08}s`;
+      const img = makeImg(imgUrl(item.folder, item.file), item.label);
+      const lbl = document.createElement('div');
+      lbl.className   = 'card-label';
+      lbl.textContent = item.label.toUpperCase();
+      card.appendChild(img);
+      card.appendChild(lbl);
+      grid.appendChild(card);
+    });
+  } else {
+    const cols = colsFor(slide.files.length);
+    const rows = rowsFor(slide.files.length);
+    grid.className = `grid cols-${cols}${rows > 1 ? ` rows-${rows}` : ''}`;
+    slide.files.forEach((f, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.animationDelay = `${i * 0.06}s`;
+      card.appendChild(makeImg(imgUrl(slide.folder, f), slide.label));
+      grid.appendChild(card);
+    });
+  }
+
+  div.appendChild(grid);
+  return div;
+}
+
+// ─────────────────────────────────────────────
+// TICKER
+// ─────────────────────────────────────────────
+function buildTicker() {
+  const track = document.getElementById('ticker-track');
+  [...TICKER_ITEMS, ...TICKER_ITEMS].forEach(text => {
+    const span = document.createElement('span');
+    span.textContent = text;
+    track.appendChild(span);
+  });
+}
+
+// ─────────────────────────────────────────────
+// RELOJ
+// ─────────────────────────────────────────────
+function updateClock() {
+  const now  = new Date();
+  const hh   = String(now.getHours()).padStart(2, '0');
+  const mm   = String(now.getMinutes()).padStart(2, '0');
+  const dia  = DIAS[now.getDay()];
+  const dd   = now.getDate();
+  const mes  = MESES[now.getMonth()];
+  document.getElementById('clock-time').textContent = `${hh}:${mm}`;
+  document.getElementById('clock-date').textContent = `${dia} ${dd} ${mes}`;
+}
+updateClock();
+setInterval(updateClock, 10000);
+
+// ─────────────────────────────────────────────
+// PAUSA AL HOVER
+// ─────────────────────────────────────────────
+let paused = false;
+const contentEl = document.getElementById('content');
+const pauseEl   = document.getElementById('pause-indicator');
+
+contentEl.addEventListener('mouseenter', () => {
+  paused = true;
+  pauseEl.style.opacity = '1';
+});
+contentEl.addEventListener('mouseleave', () => {
+  paused = false;
+  pauseEl.style.opacity = '0';
+});
+
+// ─────────────────────────────────────────────
+// MODO EDICIÓN — miniaturas por imagen
+// ─────────────────────────────────────────────
+const editPanel  = document.getElementById('edit-panel');
+const editTabs   = document.getElementById('edit-tabs');
+const editGrid   = document.getElementById('edit-grid');
+let   activeTab  = 0;
+
+function countOff(catIdx) {
+  const cat = categories[catIdx];
+  if (!cat || cat.special) return 0;
+  return cat.files.filter((_, fi) => !isImgActive(catIdx, fi)).length;
+}
+
+function renderTab(catIdx) {
+  activeTab = catIdx;
+  // update tab styles
+  editTabs.querySelectorAll('.edit-tab').forEach(t => {
+    t.classList.toggle('active', parseInt(t.dataset.idx) === catIdx);
+  });
+
+  const cat = categories[catIdx];
+  editGrid.innerHTML = '';
+
+  const files = cat.special ? cat.items.map(i => ({ file: i.file, folder: i.folder }))
+                             : cat.files.map(f => ({ file: f, folder: cat.folder }));
+
+  files.forEach((item, fi) => {
+    const active = isImgActive(catIdx, fi);
+    const thumb  = document.createElement('div');
+    thumb.className = `edit-thumb ${active ? 'active' : 'off'}`;
+
+    const imgWrap = document.createElement('div');
+    imgWrap.className = 'edit-thumb-img';
+    const img = document.createElement('img');
+    img.src    = imgUrl(item.folder, item.file);
+    img.loading = 'lazy';
+    img.onerror = function() { this.style.opacity = '0.2'; };
+    imgWrap.appendChild(img);
+
+    const lbl = document.createElement('div');
+    lbl.className   = 'edit-thumb-label';
+    lbl.textContent = item.file.replace('WhatsApp Image 2026-06-23 at ', '').replace('.png','');
+
+    thumb.appendChild(imgWrap);
+    thumb.appendChild(lbl);
+
+    thumb.onclick = () => {
+      const k = imgKey(catIdx, fi);
+      activeImgs[k] = !isImgActive(catIdx, fi);
+      saveActiveImgs();
+      thumb.classList.toggle('active',  isImgActive(catIdx, fi));
+      thumb.classList.toggle('off',    !isImgActive(catIdx, fi));
+      // actualizar badge del tab
+      updateTabBadge(catIdx);
+    };
+
+    editGrid.appendChild(thumb);
+  });
+}
+
+function updateTabBadge(catIdx) {
+  const tab = editTabs.querySelector(`[data-idx="${catIdx}"]`);
+  if (!tab) return;
+  const off = countOff(catIdx);
+  const count = tab.querySelector('.tab-count');
+  if (count) count.textContent = off > 0 ? `(${off} off)` : '';
+  tab.classList.toggle('has-off', off > 0);
+}
+
+function buildEditPanel() {
+  editTabs.innerHTML = '';
+  categories.forEach((cat, i) => {
+    if (cat.special) return;
+    const tab = document.createElement('div');
+    tab.className    = 'edit-tab';
+    tab.dataset.idx  = i;
+    const off = countOff(i);
+    tab.innerHTML    = `${cat.label} <span class="tab-count">${off > 0 ? `(${off} off)` : ''}</span>`;
+    tab.classList.toggle('has-off', off > 0);
+    tab.onclick = () => renderTab(i);
+    editTabs.appendChild(tab);
+  });
+  // arrancar en la primera tab
+  renderTab(0);
+}
+
+document.getElementById('edit-close').onclick  = closeEdit;
+document.getElementById('edit-all-on').onclick  = () => {
+  const cat = categories[activeTab];
+  if (!cat || cat.special) return;
+  cat.files.forEach((_, fi) => { activeImgs[imgKey(activeTab, fi)] = true; });
+  saveActiveImgs();
+  renderTab(activeTab);
+  updateTabBadge(activeTab);
+};
+document.getElementById('edit-all-off').onclick = () => {
+  const cat = categories[activeTab];
+  if (!cat || cat.special) return;
+  cat.files.forEach((_, fi) => { activeImgs[imgKey(activeTab, fi)] = false; });
+  saveActiveImgs();
+  renderTab(activeTab);
+  updateTabBadge(activeTab);
+};
+
+function openEdit()  { buildEditPanel(); editPanel.classList.add('visible'); }
+function closeEdit() {
+  editPanel.classList.remove('visible');
+  rebuildCarousel();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'e' || e.key === 'E') {
+    editPanel.classList.contains('visible') ? closeEdit() : openEdit();
+  }
+  if (e.key === 'Escape') closeEdit();
+});
+
+// ─────────────────────────────────────────────
+// CAROUSEL
+// ─────────────────────────────────────────────
+let slides   = [];
+let slideEls = [];
+let current  = 0;
+let timer    = null;
+
+const titleEl   = document.getElementById('slide-title');
+const eyebrowEl = document.getElementById('slide-eyebrow');
+
+function rebuildCarousel() {
+  clearInterval(timer);
+  slideEls.forEach(el => el.remove());
+  slideEls = [];
+  current  = 0;
+  slidesUntilSplash = randomSplashInterval();
+
+  slides = buildSlides();
+  slides.forEach((s, i) => {
+    const el = renderSlide(s, i);
+    contentEl.appendChild(el);
+    slideEls.push(el);
+  });
+
+  startCarousel();
+}
+
+const parallaxEl = document.getElementById('parallax-bg');
+let parallaxDir  = 1;
+
+function goTo(idx) {
+  const prevEl = slideEls[current];
+  prevEl.classList.remove('active');
+  prevEl.classList.add('exit');
+  setTimeout(() => prevEl.classList.remove('exit'), 700);
+
+  current = idx;
+  const slide   = slides[current];
+  const slideEl = slideEls[current];
+  slideEl.classList.add('active');
+
+  // parallax — alterna dirección cada slide
+  parallaxDir *= -1;
+  parallaxEl.style.transform = `translateX(${parallaxDir * 4}%) translateY(${parallaxDir * 2}%)`;
+
+  slideEl.querySelectorAll('.card').forEach(c => {
+    c.style.animation = 'none';
+    c.offsetHeight;
+    c.style.animation = '';
+  });
+
+  if (slide.special) {
+    titleEl.textContent   = 'También Tenemos';
+    eyebrowEl.textContent = 'Otros Productos';
+  } else {
+    titleEl.textContent   = slide.part ? `${slide.label} · ${slide.part}/${slide.total}` : slide.label;
+    eyebrowEl.textContent = 'Categoría';
+  }
+}
+
+function next() {
+  if (paused) return;
+
+  slidesUntilSplash--;
+  if (slidesUntilSplash <= 0) {
+    slidesUntilSplash = randomSplashInterval();
+    clearInterval(timer);
+    showSplash(3000).then(() => {
+      goTo((current + 1) % slides.length);
+      timer = setInterval(next, SLIDE_DURATION);
+    });
+    return;
+  }
+
+  goTo((current + 1) % slides.length);
+}
+
+function startCarousel() {
+  goTo(0);
+  timer = setInterval(next, SLIDE_DURATION);
+}
+
+// ─────────────────────────────────────────────
+// FRASES DE BRANDING
+// ─────────────────────────────────────────────
+const SPLASH_PHRASES = [
+  'Tu almacén de confianza',
+  'Bebidas para cada ocasión',
+  'Desde el barrio para el barrio',
+  'La mejor selección de vinos',
+  'Cervezas artesanales y premium',
+  'Gins de todo el mundo',
+  'El lugar de los que saben tomar',
+  'Siempre frío, siempre Baldo',
+  'Para el asado, para la previa, para todo',
+  'Calidad que se nota en cada trago',
+];
+
+let lastPhraseIdx = -1;
+
+function getRandomPhrase() {
+  let idx;
+  do { idx = Math.floor(Math.random() * SPLASH_PHRASES.length); }
+  while (idx === lastPhraseIdx);
+  lastPhraseIdx = idx;
+  return SPLASH_PHRASES[idx];
+}
+
+// ─────────────────────────────────────────────
+// SPLASH — mostrar / ocultar
+// ─────────────────────────────────────────────
+function showSplash(duration = SPLASH_DURATION) {
+  return new Promise(resolve => {
+    const splash     = document.getElementById('splash');
+    const phraseEl   = document.getElementById('splash-phrase');
+    const barAfter   = document.getElementById('splash-bar');
+
+    // nueva frase cada vez
+    phraseEl.textContent  = getRandomPhrase();
+    // re-trigger animación de frase
+    phraseEl.style.animation = 'none';
+    phraseEl.offsetHeight;
+    phraseEl.style.animation = '';
+
+    // re-trigger barra de carga
+    barAfter.style.setProperty('--dur', `${duration}ms`);
+
+    splash.classList.remove('hidden');
+
+    setTimeout(() => {
+      splash.classList.add('hidden');
+      setTimeout(resolve, 900);
+    }, duration);
+  });
+}
+
+// ─────────────────────────────────────────────
+// SPLASH PERIÓDICO — cada 5 a 10 slides random
+// ─────────────────────────────────────────────
+const SPLASH_MIN_SLIDES = 5;
+const SPLASH_MAX_SLIDES = 10;
+let   slidesUntilSplash = randomSplashInterval();
+
+function randomSplashInterval() {
+  return Math.floor(Math.random() * (SPLASH_MAX_SLIDES - SPLASH_MIN_SLIDES + 1)) + SPLASH_MIN_SLIDES;
+}
+
+// ─────────────────────────────────────────────
+// SPLASH → ARRANQUE
+// ─────────────────────────────────────────────
+buildTicker();
+
+// Splash inicial — sin frase (solo logo)
+document.getElementById('splash-phrase').textContent = '';
+rebuildCarousel();
+
+setTimeout(() => {
+  const splash = document.getElementById('splash');
+  splash.classList.add('hidden');
+  setTimeout(() => {}, 900);
+}, SPLASH_DURATION);
+</script>
+</body>
+</html>
